@@ -1,0 +1,120 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function getUserType() {
+      return getUserData().userType;
+    }
+
+    function isVerified() {
+      return getUserData().isVerified == true;
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isOwner(userId);
+      allow delete: if false; // Users cannot delete their own accounts via client
+    }
+
+    // Seed Producers collection
+    match /seed_producers/{producerId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && getUserType() == 'seed_producer';
+      allow update: if isAuthenticated() &&
+                     (getUserType() == 'seed_producer' || getUserType() == 'admin');
+      allow delete: if false;
+    }
+
+    // Agro Dealers collection
+    match /agro_dealers/{dealerId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && getUserType() == 'agro_dealer';
+      allow update: if isAuthenticated() &&
+                     (getUserType() == 'agro_dealer' ||
+                      getUserType() == 'seed_producer' ||
+                      getUserType() == 'admin');
+      allow delete: if false;
+    }
+
+    // Cooperatives (Farmers) collection
+    match /cooperatives/{coopId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && getUserType() == 'farmer';
+      allow update: if isAuthenticated() &&
+                     (getUserType() == 'farmer' || getUserType() == 'admin');
+      allow delete: if false;
+    }
+
+    // Aggregators collection
+    match /aggregators/{aggregatorId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && getUserType() == 'aggregator';
+      allow update: if isAuthenticated() &&
+                     (getUserType() == 'aggregator' || getUserType() == 'admin');
+      allow delete: if false;
+    }
+
+    // Institutions collection
+    match /institutions/{institutionId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && getUserType() == 'institution';
+      allow update: if isAuthenticated() &&
+                     (getUserType() == 'institution' || getUserType() == 'admin');
+      allow delete: if false;
+    }
+
+    // Orders collection
+    match /orders/{orderId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+                     (getUserType() == 'aggregator' || getUserType() == 'institution');
+      allow update: if isAuthenticated() &&
+                     (resource.data.buyerId == request.auth.uid ||
+                      resource.data.sellerId == request.auth.uid ||
+                      getUserType() == 'admin');
+      allow delete: if false;
+    }
+
+    // Transactions collection
+    match /transactions/{transactionId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isVerified();
+      allow update: if false; // Transactions are immutable once created
+      allow delete: if false;
+    }
+
+    // Notifications collection
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated(); // Created by cloud functions
+      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    // Admin collection (if needed)
+    match /admin/{document=**} {
+      allow read, write: if getUserType() == 'admin';
+    }
+
+    // Analytics collection (read-only for users)
+    match /analytics/{document=**} {
+      allow read: if isAuthenticated() && getUserType() == 'admin';
+      allow write: if false; // Only cloud functions can write
+    }
+  }
+}
