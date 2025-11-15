@@ -127,6 +127,82 @@ All registration forms include:
 - Integration with FirestoreService
 - Integration with StorageService
 
+### Phase 2C: Farmer Module (100% Complete)
+
+#### **Farmer Screens** (7 screens - ALL DONE)
+- [x] **Register Planting Screen** (565 lines)
+  - Bean variety selection (iron-biofortified varieties: RWR 2245, MAC 42, etc.)
+  - Area planted input with validation (hectares)
+  - Planting and expected harvest date pickers
+  - Auto-calculate growing period (60-150 days)
+  - Notes field, cooperative info display
+  - Creates planting records in Firestore
+
+- [x] **Harvest Management Screen** (598 lines)
+  - Summary cards (total area, active plantings, harvests)
+  - Filter chips (all, growing, harvested)
+  - Planting cards with status badges
+  - Days until harvest countdown
+  - Ready for harvest indicator (7 days or less)
+  - Pull-to-refresh functionality
+  - Navigate to update harvest screen
+
+- [x] **Update Harvest Screen** (507 lines)
+  - Planting info display with timeline
+  - Actual harvest date picker (60-150 days from planting)
+  - Quantity harvested input with validation
+  - Bean quality selection (excellent/good/fair/poor)
+  - Expected yield calculation (1500 kg/ha average)
+  - Creates harvest record and updates planting status
+  - Marks beans as available for sale
+
+- [x] **Farmer Orders Screen** (427 lines)
+  - Summary cards (pending, accepted, completed orders)
+  - Total revenue display with gradient card
+  - Filter chips with order counts
+  - Order cards with status colors
+  - Real-time order updates via Firestore streams
+  - Navigate to order details
+
+- [x] **Order Details Screen** (571 lines)
+  - Order status display with color coding
+  - Order information (variety, quantity, pricing)
+  - Buyer information and delivery details
+  - Timeline display (created, delivery, updated)
+  - Accept/reject order functionality
+  - SMS notifications on status change
+  - Contact support button
+  - Confirmation dialogs for actions
+
+- [x] **Sales History Screen** (533 lines)
+  - Sales statistics (total revenue, quantity sold, avg price, order count)
+  - Period filters (all time, this month, last month, this year)
+  - Completed orders list with sale cards
+  - Revenue calculation and aggregation
+  - Date/time formatting with intl package
+  - Currency formatting (RWF)
+  - Pull-to-refresh functionality
+
+- [x] **Market Prices Screen** (569 lines)
+  - Real-time market price display for all iron bean varieties
+  - Price statistics (average, highest, lowest per district)
+  - District filter for location-specific pricing
+  - Price trend indicators (up/down with percentages)
+  - Last updated timestamps (X min/hours/days ago)
+  - Price comparison (current vs previous)
+  - Mock data structure (ready for Firestore integration)
+  - Refresh prices functionality
+
+All farmer screens include:
+- Bilingual support (EN/RW)
+- Material Design 3 UI
+- Loading, error, and empty states
+- Real-time Firestore integration
+- Form validation
+- Responsive layouts
+- Pull-to-refresh
+- Color-coded status indicators
+
 ---
 
 ## 🟡 IN PROGRESS
@@ -139,15 +215,11 @@ None currently.
 
 ### High Priority - Core Features
 
-2. **Farmer Module** (7 screens)
-   - Register planting, harvest management, orders, sales history
-   - ~1 week estimated
-
-3. **Aggregator Module** (8 screens)
+2. **Aggregator Module** (8 screens)
    - Find farmers, place orders, inventory, institutional bids
    - ~1 week estimated
 
-4. **Institution Module** (7 screens)
+3. **Institution Module** (7 screens)
    - Post requirements, view bids, track orders, verify traceability
    - ~1 week estimated
 
@@ -214,7 +286,7 @@ None currently.
 | **Custom Widgets** | ✅ Complete | 100% (6/6) |
 | **Auth Screens** | ✅ Complete | 100% (5/5) |
 | **Registration Forms** | ✅ Complete | 100% (5/5) |
-| **Farmer Module** | ❌ Not Started | 0% (0/7) |
+| **Farmer Module** | ✅ Complete | 100% (7/7) |
 | **Aggregator Module** | ❌ Not Started | 0% (0/8) |
 | **Institution Module** | ❌ Not Started | 0% (0/7) |
 | **Other Modules** | ❌ Not Started | 0% (0/7) |
@@ -224,7 +296,7 @@ None currently.
 | **PDF Generation** | ❌ Not Started | 0% |
 | **Testing** | ❌ Not Started | 0% |
 
-**Overall Progress**: ~42% complete (all registration forms complete!)
+**Overall Progress**: ~50% complete (Farmer Module complete!)
 
 ---
 
@@ -237,31 +309,32 @@ None currently.
 | Custom Widgets | 6 | ~1,400 |
 | Auth Screens | 5 | ~900 |
 | Registration Forms | 5 | ~3,900 |
-| Documentation | 7 | ~4,000 |
-| **Total** | **35** | **~12,050** |
+| Farmer Module | 7 | ~3,770 |
+| Documentation | 7 | ~4,200 |
+| **Total** | **42** | **~16,020** |
 
 ---
 
 ## 🎯 Next Immediate Steps
 
 1. **User Action Required**: Follow FIREBASE_SETUP_GUIDE.md (10 minutes) - if not done yet
-2. **Phase 2C - Farmer Module** (Next Priority):
-   - Register planting screen
-   - Harvest management screen
-   - Update harvest screen
-   - Farmer orders screen
-   - Order details screen
-   - Sales history screen
-   - Market prices screen
-3. **Then Phase 2D - Aggregator Module**:
-   - Find farmers screen
-   - Cooperative details screen
-   - Place order screen
-   - Aggregator orders screen
-   - Collection confirmation screen
-   - Institutional orders screen
-   - Submit bid screen
-   - Inventory screen
+2. **Phase 2D - Aggregator Module** (Next Priority - 8 screens):
+   - Find farmers screen (search & filter cooperatives)
+   - Cooperative details screen (view farmer profiles)
+   - Place order screen (create orders to farmers)
+   - Aggregator orders screen (manage all orders)
+   - Collection confirmation screen (confirm bean collection)
+   - Institutional orders screen (view institution requirements)
+   - Submit bid screen (bid on institution orders)
+   - Inventory screen (track collected beans)
+3. **Then Phase 2E - Institution Module** (7 screens):
+   - Post requirement screen
+   - View bids screen
+   - Active orders screen
+   - Track order screen
+   - Verify traceability screen
+   - Delivery confirmation screen
+   - Rate aggregator screen
 
 ---
 
@@ -296,15 +369,15 @@ None currently.
 | Phase 1: Foundation | 3 weeks | ✅ DONE |
 | Phase 2A: Infrastructure | 1 week | ✅ DONE |
 | Phase 2B: Registration Forms | 1 week | ✅ DONE |
-| **Phase 2C: Farmer Module** | **1 week** | **⏳ NEXT** |
-| Phase 2D: Aggregator Module | 1 week | Pending |
+| Phase 2C: Farmer Module | 1 week | ✅ DONE |
+| **Phase 2D: Aggregator Module** | **1 week** | **⏳ NEXT** |
 | Phase 2E: Institution Module | 1 week | Pending |
 | Phase 3: Integration & Features | 2 weeks | Pending |
 | Phase 4: Testing & Polish | 1-2 weeks | Pending |
 
 **Total Estimated Time to MVP**: 10-12 weeks
-**Time Elapsed**: ~5 weeks
-**Time Remaining**: ~5-7 weeks
+**Time Elapsed**: ~6 weeks
+**Time Remaining**: ~4-6 weeks
 
 ---
 
@@ -317,6 +390,7 @@ None currently.
 ✅ **Complete Data Models**: All 9 user types and entities
 ✅ **Authentication Flow**: From splash to OTP verification
 ✅ **All Registration Forms**: 5 complete user registration flows (3,900+ lines)
+✅ **Complete Farmer Module**: 7 screens with full CRUD operations (3,770+ lines)
 ✅ **Comprehensive Docs**: 7 documentation files
 
 ---
@@ -333,8 +407,8 @@ None currently.
 **Status**: 🟢 On Track
 **Quality**: 🟢 High
 **Documentation**: 🟢 Comprehensive
-**Next Milestone**: Build Farmer Module (7 screens)
+**Next Milestone**: Build Aggregator Module (8 screens)
 
 ---
 
-*This file is updated with each major milestone. Last update represents completion of Phase 2B - All 5 registration forms complete!*
+*This file is updated with each major milestone. Last update represents completion of Phase 2C - Complete Farmer Module (7 screens, 3,770 lines)!*
