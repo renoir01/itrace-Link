@@ -1,3 +1,13 @@
+> **Status note (code review, 2026-10-16):** earlier "100% complete" claims for registration and the Farmer module
+> were not accurate: those screens were written against model shapes that did not exist and could not compile.
+> The models, screens, router and security rules were realigned in this pass, but **none of it has been compiled or run**
+> (no Flutter SDK was available). Run `flutter analyze` and fix anything it reports before building on top of it.
+>
+> **Known gaps:** there is no account-creation (sign-up) step: the registration forms need an already signed-in user and
+> `AuthService.registerWithEmail` is never called. `/otp-verification` is not linked from anywhere. SMS must move
+> server-side (Cloud Function). Aggregator, institution, agro-dealer and seed-producer dashboards/screens are not built.
+> Two services write notifications in different shapes (`relatedEntity` vs `relatedEntityId`). No tests exist yet.
+
 # iTraceLink Implementation Status
 
 **Last Updated**: November 15, 2025
