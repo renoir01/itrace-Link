@@ -48,7 +48,7 @@ class _FarmerOrdersScreenState extends State<FarmerOrdersScreen> {
       }
 
       // Load orders where farmer is the seller
-      final ordersStream = _firestoreService.getUserOrders(userId);
+      final ordersStream = _firestoreService.getSellerOrders(userId);
 
       ordersStream.listen((orders) {
         if (mounted) {
@@ -306,7 +306,12 @@ class _FarmerOrdersScreenState extends State<FarmerOrdersScreen> {
                                 itemBuilder: (context, index) {
                                   final order = _filteredOrders[index];
                                   return OrderCard(
-                                    order: order,
+                                    orderId: order.id,
+                                    buyerName: order.buyerName ?? '',
+                                    quantity: order.quantity,
+                                    pricePerKg: order.pricePerKg,
+                                    status: order.status,
+                                    requestDate: order.requestDate,
                                     onTap: () => _navigateToOrderDetails(order),
                                   );
                                 },

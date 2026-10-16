@@ -229,20 +229,21 @@ class _AggregatorRegistrationScreenState extends State<AggregatorRegistrationScr
       // Create aggregator model
       final aggregator = AggregatorModel(
         id: currentUser.uid,
+        userId: currentUser.uid,
         businessName: _businessNameController.text.trim(),
-        registrationNumber: _registrationNumberController.text.trim(),
+        licenseNumber: _registrationNumberController.text.trim(),
         tinNumber: _tinNumberController.text.trim(),
-        location: {
-          'district': _selectedDistrict!,
-          'address': _businessAddressController.text.trim(),
-        },
+        location: AddressModel(
+          district: _selectedDistrict!,
+          address: _businessAddressController.text.trim(),
+        ),
         serviceAreas: _selectedServiceAreas,
         storageCapacity: double.parse(_storageCapacityController.text.trim()),
         transportCapacity: double.parse(_transportCapacityController.text.trim()),
         currentInventory: 0.0,
         contactPerson: _contactPersonController.text.trim(),
-        phoneNumber: _phoneNumberController.text.trim(),
-        email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
+        phone: _phoneNumberController.text.trim(),
+        email: _emailController.text.trim(),
         profileImageUrl: profileImageUrl,
         documents: [
           if (licenseUrl != null) licenseUrl,
@@ -261,9 +262,9 @@ class _AggregatorRegistrationScreenState extends State<AggregatorRegistrationScr
 
       // Create/update user profile
       final userModel = UserModel(
-        uid: currentUser.uid,
-        phoneNumber: _phoneNumberController.text.trim(),
-        email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
+        id: currentUser.uid,
+        phone: _phoneNumberController.text.trim(),
+        email: _emailController.text.trim(),
         userType: 'aggregator',
         displayName: _businessNameController.text.trim(),
         isVerified: false,
@@ -278,7 +279,7 @@ class _AggregatorRegistrationScreenState extends State<AggregatorRegistrationScr
       if (!mounted) return;
 
       // Navigate to aggregator dashboard
-      context.go('/aggregator/dashboard');
+      context.go('/dashboard');
 
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(

@@ -77,6 +77,8 @@ class PhoneNumberField extends StatelessWidget {
   final String? label;
   final String? Function(String?)? validator;
   final void Function(String)? onChanged;
+  final String? hint;
+  final bool enabled;
 
   const PhoneNumberField({
     super.key,
@@ -84,6 +86,8 @@ class PhoneNumberField extends StatelessWidget {
     this.label,
     this.validator,
     this.onChanged,
+    this.hint,
+    this.enabled = true,
   });
 
   @override
@@ -91,7 +95,8 @@ class PhoneNumberField extends StatelessWidget {
     return CustomTextField(
       controller: controller,
       label: label ?? 'Phone Number',
-      hint: '+250 XXX XXX XXX',
+      hint: hint ?? '+250 XXX XXX XXX',
+      enabled: enabled,
       prefixIcon: Icons.phone,
       keyboardType: TextInputType.phone,
       inputFormatters: [
@@ -120,12 +125,19 @@ class EmailField extends StatelessWidget {
   final String? Function(String?)? validator;
   final void Function(String)? onChanged;
 
+  final String? hint;
+  final bool enabled;
+  final bool required; // when false, an empty value is accepted
+
   const EmailField({
     super.key,
     this.controller,
     this.label,
     this.validator,
     this.onChanged,
+    this.hint,
+    this.enabled = true,
+    this.required = true,
   });
 
   @override
@@ -133,13 +145,14 @@ class EmailField extends StatelessWidget {
     return CustomTextField(
       controller: controller,
       label: label ?? 'Email',
-      hint: 'example@email.com',
+      hint: hint ?? 'example@email.com',
+      enabled: enabled,
       prefixIcon: Icons.email,
       keyboardType: TextInputType.emailAddress,
       validator: validator ??
           (value) {
             if (value == null || value.isEmpty) {
-              return 'Please enter email';
+              return required ? 'Please enter email' : null;
             }
             if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
               return 'Invalid email format';
@@ -213,6 +226,9 @@ class NumberField extends StatelessWidget {
   final double? min;
   final double? max;
   final int? decimals;
+  final double? minValue; // alias of min
+  final bool? allowDecimal; // true -> up to 2 decimals (unless decimals set), false -> integers only
+  final bool enabled;
   final String? Function(String?)? validator;
   final void Function(String)? onChanged;
 
@@ -226,16 +242,25 @@ class NumberField extends StatelessWidget {
     this.min,
     this.max,
     this.decimals = 0,
+    this.minValue,
+    this.allowDecimal,
+    this.enabled = true,
     this.validator,
     this.onChanged,
   });
 
   @override
   Widget build(BuildContext context) {
+    final int digits = allowDecimal == null
+        ? (decimals ?? 0)
+        : (allowDecimal! ? ((decimals ?? 0) > 0 ? decimals! : 2) : 0);
+    final double? lowest = min ?? minValue;
+
     return CustomTextField(
       controller: controller,
       label: label,
       hint: hint,
+      enabled: enabled,
       prefixIcon: prefixIcon,
       suffixIcon: suffix != null ? Padding(
         padding: const EdgeInsets.only(right: 12),
@@ -244,12 +269,12 @@ class NumberField extends StatelessWidget {
           child: Text(suffix!, style: const TextStyle(fontSize: 16)),
         ),
       ) : null,
-      keyboardType: TextInputType.numberWithOptions(decimal: decimals! > 0),
+      keyboardType: TextInputType.numberWithOptions(decimal: digits > 0),
       inputFormatters: [
-        if (decimals == 0)
+        if (digits == 0)
           FilteringTextInputFormatter.digitsOnly
         else
-          FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,' + decimals.toString() + r'}')),
+          FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,' + digits.toString() + r'}')),
       ],
       validator: validator ??
           (value) {
@@ -260,8 +285,8 @@ class NumberField extends StatelessWidget {
             if (number == null) {
               return 'Invalid number';
             }
-            if (min != null && number < min!) {
-              return 'Minimum value is $min';
+            if (lowest != null && number < lowest) {
+              return 'Minimum value is $lowest';
             }
             if (max != null && number > max!) {
               return 'Maximum value is $max';
@@ -280,6 +305,7 @@ class TextAreaField extends StatelessWidget {
   final String? hint;
   final int maxLines;
   final int? maxLength;
+  final bool enabled;
   final String? Function(String?)? validator;
   final void Function(String)? onChanged;
 
@@ -290,6 +316,7 @@ class TextAreaField extends StatelessWidget {
     this.hint,
     this.maxLines = 4,
     this.maxLength,
+    this.enabled = true,
     this.validator,
     this.onChanged,
   });
@@ -300,6 +327,7 @@ class TextAreaField extends StatelessWidget {
       controller: controller,
       label: label,
       hint: hint,
+      enabled: enabled,
       maxLines: maxLines,
       maxLength: maxLength,
       textCapitalization: TextCapitalization.sentences,

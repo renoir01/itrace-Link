@@ -215,14 +215,15 @@ class _InstitutionRegistrationScreenState extends State<InstitutionRegistrationS
       // Create institution model
       final institution = InstitutionModel(
         id: currentUser.uid,
+        userId: currentUser.uid,
         institutionName: _institutionNameController.text.trim(),
         institutionType: _institutionType!,
         registrationNumber: _registrationNumberController.text.trim(),
-        location: {
-          'district': _selectedDistrict!,
-          'sector': _selectedSector!,
-          'address': _addressController.text.trim(),
-        },
+        location: AddressModel(
+          district: _selectedDistrict!,
+          sector: _selectedSector!,
+          address: _addressController.text.trim(),
+        ),
         monthlyRequirement: double.parse(_monthlyRequirementController.text.trim()),
         numberOfBeneficiaries: int.parse(_numberOfBeneficiariesController.text.trim()),
         budget: _budgetController.text.trim().isEmpty
@@ -230,8 +231,8 @@ class _InstitutionRegistrationScreenState extends State<InstitutionRegistrationS
             : double.tryParse(_budgetController.text.trim()),
         paymentTerms: _paymentTerms!,
         contactPerson: _contactPersonController.text.trim(),
-        phoneNumber: _phoneNumberController.text.trim(),
-        email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
+        phone: _phoneNumberController.text.trim(),
+        email: _emailController.text.trim(),
         profileImageUrl: profileImageUrl,
         documents: certificateUrl != null ? [certificateUrl] : [],
         isVerified: false,
@@ -247,9 +248,9 @@ class _InstitutionRegistrationScreenState extends State<InstitutionRegistrationS
 
       // Create/update user profile
       final userModel = UserModel(
-        uid: currentUser.uid,
-        phoneNumber: _phoneNumberController.text.trim(),
-        email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
+        id: currentUser.uid,
+        phone: _phoneNumberController.text.trim(),
+        email: _emailController.text.trim(),
         userType: 'institution',
         displayName: _institutionNameController.text.trim(),
         isVerified: false,
@@ -264,7 +265,7 @@ class _InstitutionRegistrationScreenState extends State<InstitutionRegistrationS
       if (!mounted) return;
 
       // Navigate to institution dashboard
-      context.go('/institution/dashboard');
+      context.go('/dashboard');
 
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(

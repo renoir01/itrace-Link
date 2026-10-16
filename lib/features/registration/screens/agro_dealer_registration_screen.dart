@@ -242,19 +242,20 @@ class _AgroDealerRegistrationScreenState extends State<AgroDealerRegistrationScr
       // Create agro-dealer model
       final agroDealer = AgroDealerModel(
         id: currentUser.uid,
+        userId: currentUser.uid,
         businessName: _businessNameController.text.trim(),
         licenseNumber: _licenseNumberController.text.trim(),
         tinNumber: _tinNumberController.text.trim(),
-        location: {
-          'district': _selectedDistrict!,
-          'sector': _selectedSector!,
-          'address': _shopAddressController.text.trim(),
-        },
+        location: AddressModel(
+          district: _selectedDistrict!,
+          sector: _selectedSector!,
+          address: _shopAddressController.text.trim(),
+        ),
         authorizedSeedProducers: _selectedSeedProducers,
         inventory: [], // Will be populated when adding seed stock
         contactPerson: _contactPersonController.text.trim(),
-        phoneNumber: _phoneNumberController.text.trim(),
-        email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
+        phone: _phoneNumberController.text.trim(),
+        email: _emailController.text.trim(),
         profileImageUrl: profileImageUrl,
         documents: [
           if (licenseUrl != null) licenseUrl,
@@ -272,9 +273,9 @@ class _AgroDealerRegistrationScreenState extends State<AgroDealerRegistrationScr
 
       // Create/update user profile
       final userModel = UserModel(
-        uid: currentUser.uid,
-        phoneNumber: _phoneNumberController.text.trim(),
-        email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
+        id: currentUser.uid,
+        phone: _phoneNumberController.text.trim(),
+        email: _emailController.text.trim(),
         userType: 'agro_dealer',
         displayName: _businessNameController.text.trim(),
         isVerified: false,
@@ -289,7 +290,7 @@ class _AgroDealerRegistrationScreenState extends State<AgroDealerRegistrationScr
       if (!mounted) return;
 
       // Navigate to agro-dealer dashboard
-      context.go('/agro-dealer/dashboard');
+      context.go('/dashboard');
 
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(

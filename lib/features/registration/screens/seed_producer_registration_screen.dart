@@ -248,21 +248,22 @@ class _SeedProducerRegistrationScreenState extends State<SeedProducerRegistratio
       // Create seed producer model
       final seedProducer = SeedProducerModel(
         id: currentUser.uid,
-        companyName: _companyNameController.text.trim(),
+        userId: currentUser.uid,
+        organizationName: _companyNameController.text.trim(),
         certificationNumber: _certificationNumberController.text.trim(),
         registrationNumber: _registrationNumberController.text.trim(),
         tinNumber: _tinNumberController.text.trim(),
-        location: {
-          'district': _selectedDistrict!,
-          'sector': _selectedSector!,
-          'address': _facilityAddressController.text.trim(),
-        },
+        address: AddressModel(
+          district: _selectedDistrict!,
+          sector: _selectedSector!,
+          address: _facilityAddressController.text.trim(),
+        ),
         productionCapacity: double.parse(_productionCapacityController.text.trim()),
-        certifiedVarieties: _certifiedVarieties,
-        authorizedDealers: [], // Will be populated when authorizing dealers
+        seedVarieties: _certifiedVarieties,
+        authorizedDealerIds: [], // Will be populated when authorizing dealers
         contactPerson: _contactPersonController.text.trim(),
-        phoneNumber: _phoneNumberController.text.trim(),
-        email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
+        phone: _phoneNumberController.text.trim(),
+        email: _emailController.text.trim(),
         profileImageUrl: profileImageUrl,
         documents: [
           if (certificationUrl != null) certificationUrl,
@@ -280,9 +281,9 @@ class _SeedProducerRegistrationScreenState extends State<SeedProducerRegistratio
 
       // Create/update user profile
       final userModel = UserModel(
-        uid: currentUser.uid,
-        phoneNumber: _phoneNumberController.text.trim(),
-        email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
+        id: currentUser.uid,
+        phone: _phoneNumberController.text.trim(),
+        email: _emailController.text.trim(),
         userType: 'seed_producer',
         displayName: _companyNameController.text.trim(),
         isVerified: false,
@@ -297,7 +298,7 @@ class _SeedProducerRegistrationScreenState extends State<SeedProducerRegistratio
       if (!mounted) return;
 
       // Navigate to seed producer dashboard
-      context.go('/seed-producer/dashboard');
+      context.go('/dashboard');
 
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(

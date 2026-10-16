@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -206,20 +207,21 @@ class _FarmerRegistrationScreenState extends State<FarmerRegistrationScreen> {
       // Create cooperative model
       final cooperative = CooperativeModel(
         id: currentUser.uid,
+        userId: currentUser.uid,
         cooperativeName: _cooperativeNameController.text.trim(),
         registrationNumber: _registrationNumberController.text.trim(),
         numberOfMembers: int.parse(_numberOfMembersController.text.trim()),
-        location: {
-          'district': _selectedDistrict!,
-          'sector': _selectedSector!,
-          'cell': _selectedCell!,
-        },
-        gpsCoordinates: (latitude != null && longitude != null)
-            ? {'latitude': latitude, 'longitude': longitude}
-            : null,
+        location: AddressModel(
+          district: _selectedDistrict!,
+          sector: _selectedSector!,
+          cell: _selectedCell!,
+          gps: (latitude != null && longitude != null)
+              ? GeoPoint(latitude, longitude)
+              : null,
+        ),
         contactPerson: _contactPersonController.text.trim(),
-        phoneNumber: _phoneNumberController.text.trim(),
-        email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
+        phone: _phoneNumberController.text.trim(),
+        email: _emailController.text.trim(),
         profileImageUrl: profileImageUrl,
         documents: certificateUrl != null ? [certificateUrl] : [],
         totalArea: 0.0, // Will be updated when registering plantings
@@ -237,9 +239,9 @@ class _FarmerRegistrationScreenState extends State<FarmerRegistrationScreen> {
 
       // Create/update user profile
       final userModel = UserModel(
-        uid: currentUser.uid,
-        phoneNumber: _phoneNumberController.text.trim(),
-        email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
+        id: currentUser.uid,
+        phone: _phoneNumberController.text.trim(),
+        email: _emailController.text.trim(),
         userType: 'farmer',
         displayName: _cooperativeNameController.text.trim(),
         isVerified: false,
@@ -254,7 +256,7 @@ class _FarmerRegistrationScreenState extends State<FarmerRegistrationScreen> {
       if (!mounted) return;
 
       // Navigate to farmer dashboard
-      context.go('/farmer/dashboard');
+      context.go('/dashboard');
 
       // Show success message
       ScaffoldMessenger.of(context).showSnackBar(

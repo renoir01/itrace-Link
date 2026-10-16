@@ -47,7 +47,7 @@ class _SalesHistoryScreenState extends State<SalesHistoryScreen> {
       }
 
       // Load completed orders only
-      final ordersStream = _firestoreService.getUserOrders(userId, status: 'completed');
+      final ordersStream = _firestoreService.getSellerOrders(userId, status: 'completed');
 
       ordersStream.listen((orders) {
         if (mounted) {

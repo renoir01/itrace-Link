@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -67,21 +68,31 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     });
 
     try {
-      final updatedOrder = _order!.copyWith(
-        status: 'accepted',
-        updatedAt: DateTime.now(),
-      );
+      // Only send the fields that change (keeps Firestore rules strict)
+      await _firestoreService.updateOrder(_order!.id, {
+        'status': 'accepted',
+        'updatedAt': Timestamp.fromDate(DateTime.now()),
+      });
 
-      await _firestoreService.updateOrder(updatedOrder);
-
-      // Send SMS notification to buyer
       final localization = context.read<LocalizationService>();
-      await _smsService.sendOrderNotification(
-        phoneNumber: _order!.buyerId, // This should be buyer's phone
-        aggregatorName: _order!.sellerId, // This should be seller's name
-        quantity: _order!.quantity,
-        languageCode: localization.isEnglish ? 'en' : 'rw',
-      );
+
+      // Notify the buyer by SMS. This must never block or fail the acceptance,
+      // so any error here is swallowed (the order is already accepted).
+      try {
+        final buyer = await _firestoreService.getUser(_order!.buyerId);
+        if (buyer != null && buyer.phone.isNotEmpty) {
+          await _smsService.sendOrderNotification(
+            phoneNumber: buyer.phone,
+            aggregatorName: _order!.sellerName ?? '',
+            quantity: _order!.quantity,
+            price: _order!.totalAmount,
+            deliveryDate: _order!.expectedDeliveryDate,
+            languageCode: localization.isEnglish ? 'en' : 'rw',
+          );
+        }
+      } catch (e) {
+        debugPrint('Order accepted but SMS could not be sent: $e');
+      }
 
       if (!mounted) return;
 
@@ -148,12 +159,10 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
     });
 
     try {
-      final updatedOrder = _order!.copyWith(
-        status: 'rejected',
-        updatedAt: DateTime.now(),
-      );
-
-      await _firestoreService.updateOrder(updatedOrder);
+      await _firestoreService.updateOrder(_order!.id, {
+        'status': 'rejected',
+        'updatedAt': Timestamp.fromDate(DateTime.now()),
+      });
 
       if (!mounted) return;
 

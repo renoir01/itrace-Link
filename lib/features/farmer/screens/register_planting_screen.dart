@@ -220,7 +220,10 @@ class _RegisterPlantingScreenState extends State<RegisterPlantingScreen> {
         updatedAt: DateTime.now(),
       );
 
-      await _firestoreService.updateCooperative(updatedCooperative);
+      await _firestoreService.updateCooperative(
+        updatedCooperative.id,
+        updatedCooperative.toFirestore(),
+      );
 
       if (!mounted) return;
 

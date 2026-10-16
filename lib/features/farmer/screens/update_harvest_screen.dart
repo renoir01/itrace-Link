@@ -160,13 +160,30 @@ class _UpdateHarvestScreenState extends State<UpdateHarvestScreen> {
       }).toList();
 
       // Update cooperative
+      final allHarvests = [...cooperative.harvestRecords, harvestRecord];
+      final availableQuantity = allHarvests
+          .where((h) => h.isAvailable)
+          .fold<double>(0.0, (sum, h) => sum + h.quantity);
+
+      // harvestInfo + availableForSale are what aggregators query on
+      // (FirestoreService.getAvailableCooperatives), so they must be kept in sync.
       final updatedCooperative = cooperative.copyWith(
         plantingRecords: updatedPlantings,
-        harvestRecords: [...cooperative.harvestRecords, harvestRecord],
+        harvestRecords: allHarvests,
+        harvestInfo: HarvestInfo(
+          expectedQuantity: widget.planting.areaPlanted * 1500,
+          actualQuantity: availableQuantity,
+          harvestDate: _actualHarvestDate,
+          storageLocation: cooperative.location.displayText,
+        ),
+        availableForSale: availableQuantity > 0,
         updatedAt: DateTime.now(),
       );
 
-      await _firestoreService.updateCooperative(updatedCooperative);
+      await _firestoreService.updateCooperative(
+        updatedCooperative.id,
+        updatedCooperative.toFirestore(),
+      );
 
       if (!mounted) return;
 
