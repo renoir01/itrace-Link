@@ -234,15 +234,13 @@ class _FarmerRegistrationScreenState extends State<FarmerRegistrationScreen> {
         updatedAt: DateTime.now(),
       );
 
-      // Save to Firestore
-      await _firestoreService.createCooperative(cooperative);
-
       // Create/update user profile
       final userModel = UserModel(
         id: currentUser.uid,
         phone: _phoneNumberController.text.trim(),
         email: _emailController.text.trim(),
         userType: 'farmer',
+        language: context.read<LocalizationService>().isEnglish ? 'en' : 'rw',
         displayName: _cooperativeNameController.text.trim(),
         isVerified: false,
         createdAt: DateTime.now(),
@@ -250,6 +248,9 @@ class _FarmerRegistrationScreenState extends State<FarmerRegistrationScreen> {
       );
 
       await _firestoreService.createUser(userModel);
+
+      // Save the business profile (rules require the user profile above to exist first)
+      await _firestoreService.createCooperative(cooperative);
 
       setState(() => _uploadProgress = 1.0);
 

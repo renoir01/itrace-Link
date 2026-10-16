@@ -1,0 +1,54 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // Images and PDFs only, max 10 MB.
+    function validUpload() {
+      return request.resource.size < 10 * 1024 * 1024
+          && (request.resource.contentType.matches('image/.*')
+              || request.resource.contentType == 'application/pdf');
+    }
+
+    // Files are named "<uid>_..." by StorageService, so a user can only write
+    // files that carry their own uid and cannot overwrite someone else's.
+    function ownsFile(fileName) {
+      return fileName.matches(request.auth.uid + '_.*');
+    }
+
+    match /profile_images/{fileName} {
+      allow read: if signedIn();
+      allow create: if signedIn() && ownsFile(fileName) && validUpload();
+      allow update, delete: if false;
+    }
+
+    match /documents/{fileName} {
+      // Registration certificates etc. are private to the owner.
+      allow read: if signedIn() && ownsFile(fileName);
+      allow create: if signedIn() && ownsFile(fileName) && validUpload();
+      allow update, delete: if false;
+    }
+
+    match /planting_photos/{fileName} {
+      allow read: if signedIn();
+      allow create: if signedIn() && ownsFile(fileName) && validUpload();
+      allow update, delete: if false;
+    }
+
+    match /harvest_photos/{fileName} {
+      allow read: if signedIn();
+      allow create: if signedIn() && ownsFile(fileName) && validUpload();
+      allow update, delete: if false;
+    }
+
+    // Named by order id rather than uid, so only size/type can be enforced here.
+    match /delivery_photos/{fileName} {
+      allow read: if signedIn();
+      allow create: if signedIn() && validUpload();
+      allow update, delete: if false;
+    }
+  }
+}

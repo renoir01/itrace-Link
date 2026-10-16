@@ -20,7 +20,7 @@ class FirestoreService {
     await _firestore
         .collection(AppConstants.collectionUsers)
         .doc(user.id)
-        .set(user.toFirestore());
+        .set(user.toFirestore(), SetOptions(merge: true));
   }
 
   Future<UserModel?> getUser(String userId) async {

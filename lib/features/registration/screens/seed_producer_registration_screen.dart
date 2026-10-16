@@ -276,15 +276,13 @@ class _SeedProducerRegistrationScreenState extends State<SeedProducerRegistratio
         updatedAt: DateTime.now(),
       );
 
-      // Save to Firestore
-      await _firestoreService.createSeedProducer(seedProducer);
-
       // Create/update user profile
       final userModel = UserModel(
         id: currentUser.uid,
         phone: _phoneNumberController.text.trim(),
         email: _emailController.text.trim(),
         userType: 'seed_producer',
+        language: context.read<LocalizationService>().isEnglish ? 'en' : 'rw',
         displayName: _companyNameController.text.trim(),
         isVerified: false,
         createdAt: DateTime.now(),
@@ -292,6 +290,9 @@ class _SeedProducerRegistrationScreenState extends State<SeedProducerRegistratio
       );
 
       await _firestoreService.createUser(userModel);
+
+      // Save the business profile (rules require the user profile above to exist first)
+      await _firestoreService.createSeedProducer(seedProducer);
 
       setState(() => _uploadProgress = 1.0);
 

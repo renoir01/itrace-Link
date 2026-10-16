@@ -2,7 +2,9 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions
+    // ---------------------------------------------------------------------
+    // Helpers
+    // ---------------------------------------------------------------------
     function isAuthenticated() {
       return request.auth != null;
     }
@@ -11,110 +13,192 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
+    function userDocPath() {
+      return /databases/$(database)/documents/users/$(request.auth.uid);
+    }
+
     function getUserData() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return get(userDocPath()).data;
     }
 
     function getUserType() {
-      return getUserData().userType;
+      return isAuthenticated() ? getUserData().userType : '';
+    }
+
+    function isAdmin() {
+      // Admins can only be created by hand in the Firebase console / Admin SDK.
+      // Clients can never write userType 'admin' (see /users rules below).
+      return isAuthenticated() && exists(userDocPath()) && getUserType() == 'admin';
     }
 
     function isVerified() {
-      return getUserData().isVerified == true;
+      return isAuthenticated() && exists(userDocPath()) &&
+             getUserData().get('isVerified', false) == true;
     }
 
-    // Users collection
+    // Roles a person may choose for themselves when signing up.
+    function isSelfServiceRole(role) {
+      return role in ['seed_producer', 'agro_dealer', 'farmer', 'aggregator', 'institution'];
+    }
+
+    // Fields that only the platform (admin / Cloud Functions) may change on a
+    // profile: trust, ratings and aggregate counters.
+    function platformOnlyFields() {
+      return ['isVerified', 'rating', 'userId', 'totalSales', 'totalOrders',
+              'completedOrders', 'totalSpent', 'totalProduction', 'totalDealers'];
+    }
+
+    function changesPlatformFields() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+               .hasAny(platformOnlyFields());
+    }
+
+    // Common rules for a business profile document stored under the owner's uid.
+    function canCreateProfile(docId, role) {
+      return isOwner(docId)
+          && exists(userDocPath())
+          && getUserType() == role
+          && request.resource.data.get('isVerified', false) == false;
+    }
+
+    function canUpdateProfile(docId) {
+      return (isOwner(docId) && !changesPlatformFields()) || isAdmin();
+    }
+
+    // ---------------------------------------------------------------------
+    // Users
+    // ---------------------------------------------------------------------
     match /users/{userId} {
+      // Signed-in users look each other up (names, phone numbers for SMS).
       allow read: if isAuthenticated();
-      allow create: if isAuthenticated();
-      allow update: if isOwner(userId);
-      allow delete: if false; // Users cannot delete their own accounts via client
+
+      // You may only create your OWN profile, with a normal role, unverified.
+      // (Previously anyone could create any profile with userType 'admin'.)
+      allow create: if isOwner(userId)
+                    && isSelfServiceRole(request.resource.data.userType)
+                    && request.resource.data.get('isVerified', false) == false;
+
+      // Owner can edit their profile but never their role or verification.
+      allow update: if (isOwner(userId)
+                        && !request.resource.data.diff(resource.data).affectedKeys()
+                             .hasAny(['userType', 'isVerified']))
+                    || isAdmin();
+
+      allow delete: if false;
     }
 
-    // Seed Producers collection
+    // ---------------------------------------------------------------------
+    // Business profiles (document id == the owner's uid)
+    // ---------------------------------------------------------------------
     match /seed_producers/{producerId} {
       allow read: if isAuthenticated();
-      allow create: if isAuthenticated() && getUserType() == 'seed_producer';
-      allow update: if isAuthenticated() &&
-                     (getUserType() == 'seed_producer' || getUserType() == 'admin');
+      allow create: if canCreateProfile(producerId, 'seed_producer');
+      allow update: if canUpdateProfile(producerId);
       allow delete: if false;
     }
 
-    // Agro Dealers collection
     match /agro_dealers/{dealerId} {
       allow read: if isAuthenticated();
-      allow create: if isAuthenticated() && getUserType() == 'agro_dealer';
-      allow update: if isAuthenticated() &&
-                     (getUserType() == 'agro_dealer' ||
-                      getUserType() == 'seed_producer' ||
-                      getUserType() == 'admin');
+      allow create: if canCreateProfile(dealerId, 'agro_dealer');
+      allow update: if canUpdateProfile(dealerId)
+                    // a seed producer may only (de)authorise dealers
+                    || (getUserType() == 'seed_producer'
+                        && request.resource.data.diff(resource.data).affectedKeys()
+                             .hasOnly(['seedProducerId', 'authorizedSeedProducers', 'updatedAt']));
       allow delete: if false;
     }
 
-    // Cooperatives (Farmers) collection
     match /cooperatives/{coopId} {
       allow read: if isAuthenticated();
-      allow create: if isAuthenticated() && getUserType() == 'farmer';
-      allow update: if isAuthenticated() &&
-                     (getUserType() == 'farmer' || getUserType() == 'admin');
+      allow create: if canCreateProfile(coopId, 'farmer');
+      allow update: if canUpdateProfile(coopId);
       allow delete: if false;
     }
 
-    // Aggregators collection
     match /aggregators/{aggregatorId} {
       allow read: if isAuthenticated();
-      allow create: if isAuthenticated() && getUserType() == 'aggregator';
-      allow update: if isAuthenticated() &&
-                     (getUserType() == 'aggregator' || getUserType() == 'admin');
+      allow create: if canCreateProfile(aggregatorId, 'aggregator');
+      allow update: if canUpdateProfile(aggregatorId);
       allow delete: if false;
     }
 
-    // Institutions collection
     match /institutions/{institutionId} {
       allow read: if isAuthenticated();
-      allow create: if isAuthenticated() && getUserType() == 'institution';
-      allow update: if isAuthenticated() &&
-                     (getUserType() == 'institution' || getUserType() == 'admin');
+      allow create: if canCreateProfile(institutionId, 'institution');
+      allow update: if canUpdateProfile(institutionId);
       allow delete: if false;
     }
 
-    // Orders collection
+    // ---------------------------------------------------------------------
+    // Orders: only the two parties (and admins) can see or change them
+    // ---------------------------------------------------------------------
     match /orders/{orderId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated() &&
-                     (getUserType() == 'aggregator' || getUserType() == 'institution');
-      allow update: if isAuthenticated() &&
-                     (resource.data.buyerId == request.auth.uid ||
-                      resource.data.sellerId == request.auth.uid ||
-                      getUserType() == 'admin');
+      allow read: if isAuthenticated()
+                  && (resource.data.buyerId == request.auth.uid
+                      || resource.data.sellerId == request.auth.uid
+                      || isAdmin());
+
+      // You can only place an order as yourself, and it starts out pending/unpaid.
+      allow create: if isAuthenticated()
+                    && (getUserType() == 'aggregator' || getUserType() == 'institution')
+                    && request.resource.data.buyerId == request.auth.uid
+                    && request.resource.data.status == 'pending'
+                    && request.resource.data.get('paymentStatus', 'pending') == 'pending';
+
+      // Parties may move the order along but not rewrite who/what/how much/price.
+      allow update: if isAuthenticated()
+                    && (resource.data.buyerId == request.auth.uid
+                        || resource.data.sellerId == request.auth.uid)
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['status', 'paymentStatus', 'updatedAt', 'notes']);
+      allow update: if isAdmin();
+
       allow delete: if false;
     }
 
-    // Transactions collection
+    // ---------------------------------------------------------------------
+    // Transactions (traceability chain): append-only
+    // ---------------------------------------------------------------------
     match /transactions/{transactionId} {
+      // Traceability is meant to be checkable by anyone signed in (e.g. QR scan).
       allow read: if isAuthenticated();
-      allow create: if isAuthenticated() && isVerified();
-      allow update: if false; // Transactions are immutable once created
+      allow create: if isVerified()
+                    && (request.resource.data.fromActorId == request.auth.uid
+                        || request.resource.data.toActorId == request.auth.uid);
+      allow update: if false;
       allow delete: if false;
     }
 
-    // Notifications collection
+    // ---------------------------------------------------------------------
+    // Notifications
+    // ---------------------------------------------------------------------
     match /notifications/{notificationId} {
       allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
-      allow create: if isAuthenticated(); // Created by cloud functions
-      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
+
+      // The app currently writes notifications from the client (to the other
+      // party). Keep that working, but only as unread notifications; moving this
+      // to a Cloud Function is the long-term fix.
+      allow create: if isAuthenticated()
+                    && request.resource.data.userId is string
+                    && request.resource.data.get('isRead', false) == false;
+
+      // The recipient may only mark a notification as read.
+      allow update: if isAuthenticated()
+                    && resource.data.userId == request.auth.uid
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead']);
       allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
 
-    // Admin collection (if needed)
+    // ---------------------------------------------------------------------
+    // Admin / analytics
+    // ---------------------------------------------------------------------
     match /admin/{document=**} {
-      allow read, write: if getUserType() == 'admin';
+      allow read, write: if isAdmin();
     }
 
-    // Analytics collection (read-only for users)
     match /analytics/{document=**} {
-      allow read: if isAuthenticated() && getUserType() == 'admin';
-      allow write: if false; // Only cloud functions can write
+      allow read: if isAdmin();
+      allow write: if false; // only Cloud Functions (Admin SDK) write analytics
     }
   }
 }

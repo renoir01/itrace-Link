@@ -268,15 +268,13 @@ class _AgroDealerRegistrationScreenState extends State<AgroDealerRegistrationScr
         updatedAt: DateTime.now(),
       );
 
-      // Save to Firestore
-      await _firestoreService.createAgroDealer(agroDealer);
-
       // Create/update user profile
       final userModel = UserModel(
         id: currentUser.uid,
         phone: _phoneNumberController.text.trim(),
         email: _emailController.text.trim(),
         userType: 'agro_dealer',
+        language: context.read<LocalizationService>().isEnglish ? 'en' : 'rw',
         displayName: _businessNameController.text.trim(),
         isVerified: false,
         createdAt: DateTime.now(),
@@ -284,6 +282,9 @@ class _AgroDealerRegistrationScreenState extends State<AgroDealerRegistrationScr
       );
 
       await _firestoreService.createUser(userModel);
+
+      // Save the business profile (rules require the user profile above to exist first)
+      await _firestoreService.createAgroDealer(agroDealer);
 
       setState(() => _uploadProgress = 1.0);
 
