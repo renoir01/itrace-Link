@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import '../../../core/constants/app_constants.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../services/auth_service.dart';
 import '../../../services/localization_service.dart';
@@ -93,7 +95,7 @@ class DashboardScreen extends StatelessWidget {
               ),
               onTap: () async {
                 await authService.logout();
-                // Navigation will be handled automatically by auth state change
+                if (context.mounted) context.go('/login');
               },
             ),
           ],
@@ -141,18 +143,86 @@ class DashboardScreen extends StatelessWidget {
   }
 
   Widget _buildUserSpecificActions(BuildContext context, String? userType) {
-    // TODO: Implement user type-specific quick actions
+    final isEnglish = context.read<LocalizationService>().isEnglish;
+
+    if (userType == AppConstants.userTypeFarmer) {
+      final actions = <_QuickAction>[
+        _QuickAction(
+          Icons.grass,
+          isEnglish ? 'Register Planting' : 'Andika Ibyahingwe',
+          '/farmer/register-planting',
+        ),
+        _QuickAction(
+          Icons.agriculture,
+          isEnglish ? 'Harvest Management' : 'Gucunga Isarura',
+          '/farmer/harvest-management',
+        ),
+        _QuickAction(
+          Icons.receipt_long,
+          isEnglish ? 'My Orders' : 'Amacupa Yanjye',
+          '/farmer/orders',
+        ),
+        _QuickAction(
+          Icons.history,
+          isEnglish ? 'Sales History' : 'Amateka y\'Ibicuruzwa',
+          '/farmer/sales-history',
+        ),
+        _QuickAction(
+          Icons.trending_up,
+          isEnglish ? 'Market Prices' : 'Ibiciro by\'Isoko',
+          '/farmer/market-prices',
+        ),
+      ];
+
+      return GridView.count(
+        crossAxisCount: 2,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        crossAxisSpacing: 12,
+        mainAxisSpacing: 12,
+        children: actions
+            .map((a) => Card(
+                  child: InkWell(
+                    onTap: () => context.push(a.route),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(a.icon, size: 36, color: AppTheme.primaryGreen),
+                          const SizedBox(height: 8),
+                          Text(
+                            a.label,
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.titleSmall,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ))
+            .toList(),
+      );
+    }
+
+    // The other roles' screens are not built yet (see IMPLEMENTATION_STATUS.md).
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Text('User Type: ${userType ?? "Unknown"}'),
-            const SizedBox(height: 8),
-            const Text('TODO: Implement user-specific dashboard actions'),
-          ],
+        child: Text(
+          isEnglish
+              ? 'Your tools are coming soon.'
+              : 'Ibikoresho byawe biraza vuba.',
         ),
       ),
     );
   }
+}
+
+class _QuickAction {
+  final IconData icon;
+  final String label;
+  final String route;
+
+  const _QuickAction(this.icon, this.label, this.route);
 }

@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
 
+import 'core/localization/rw_fallback_delegates.dart';
 import 'core/routes/app_router.dart';
 import 'core/theme/app_theme.dart';
 import 'services/localization_service.dart';
@@ -57,6 +58,7 @@ class ITraceLinkApp extends StatelessWidget {
               GlobalMaterialLocalizations.delegate,
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
+              ...RwFallbackLocalizations.delegates,
             ],
             routerConfig: AppRouter.router,
           );

@@ -94,13 +94,7 @@ flutter:
   assets:
     - assets/images/
     - assets/translations/
-    - .env
 
-  fonts:
-    - family: Roboto
-      fonts:
-        - asset: assets/fonts/Roboto-Regular.ttf
-        - asset: assets/fonts/Roboto-Bold.ttf
-          weight: 700
-        - asset: assets/fonts/Roboto-Medium.ttf
-          weight: 500
+  # NOTE: .env is intentionally NOT bundled. Anything inside the app package can be
+  # extracted from the APK, so API secrets (e.g. the SMS key) must live server-side.
+  # Roboto is already the Android default font, so no custom font files are required.

@@ -1,5 +1,15 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../models/cooperative_model.dart';
+import '../../features/farmer/screens/farmer_orders_screen.dart';
+import '../../features/farmer/screens/harvest_management_screen.dart';
+import '../../features/farmer/screens/market_prices_screen.dart';
+import '../../features/farmer/screens/order_details_screen.dart';
+import '../../features/farmer/screens/register_planting_screen.dart';
+import '../../features/farmer/screens/sales_history_screen.dart';
+import '../../features/farmer/screens/update_harvest_screen.dart';
 
 import '../../features/auth/screens/splash_screen.dart';
 import '../../features/auth/screens/language_selection_screen.dart';
@@ -12,6 +22,22 @@ import '../../features/dashboard/screens/dashboard_screen.dart';
 class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: '/splash',
+    // Pages a signed-out user may see. Everything else requires a Firebase user.
+    redirect: (context, state) {
+      const publicRoutes = {
+        '/splash',
+        '/language-selection',
+        '/user-type-selection',
+        '/login',
+        '/registration',
+        '/otp-verification',
+      };
+      final signedIn = FirebaseAuth.instance.currentUser != null;
+      if (!signedIn && !publicRoutes.contains(state.matchedLocation)) {
+        return '/login';
+      }
+      return null;
+    },
     routes: [
       // Splash & Onboarding
       GoRoute(
@@ -48,7 +74,7 @@ class AppRouter {
         path: '/otp-verification',
         name: 'otp-verification',
         builder: (context, state) {
-          final phoneNumber = state.extra as String;
+          final phoneNumber = (state.extra as String?) ?? '';
           return OtpVerificationScreen(phoneNumber: phoneNumber);
         },
       ),
@@ -64,17 +90,40 @@ class AppRouter {
       GoRoute(
         path: '/farmer/register-planting',
         name: 'farmer-register-planting',
-        builder: (context, state) => const Placeholder(), // TODO: Create screen
+        builder: (context, state) => const RegisterPlantingScreen(),
       ),
       GoRoute(
         path: '/farmer/harvest-management',
         name: 'farmer-harvest-management',
-        builder: (context, state) => const Placeholder(), // TODO: Create screen
+        builder: (context, state) => const HarvestManagementScreen(),
+      ),
+      GoRoute(
+        path: '/farmer/update-harvest',
+        name: 'farmer-update-harvest',
+        builder: (context, state) {
+          final planting = state.extra;
+          // The planting is passed as `extra`, which is lost on a deep link or
+          // app restart; fall back to the list instead of crashing.
+          if (planting is PlantingRecord) {
+            return UpdateHarvestScreen(planting: planting);
+          }
+          return const HarvestManagementScreen();
+        },
       ),
       GoRoute(
         path: '/farmer/orders',
         name: 'farmer-orders',
-        builder: (context, state) => const Placeholder(), // TODO: Create screen
+        builder: (context, state) => const FarmerOrdersScreen(),
+      ),
+      GoRoute(
+        path: '/farmer/sales-history',
+        name: 'farmer-sales-history',
+        builder: (context, state) => const SalesHistoryScreen(),
+      ),
+      GoRoute(
+        path: '/farmer/market-prices',
+        name: 'farmer-market-prices',
+        builder: (context, state) => const MarketPricesScreen(),
       ),
 
       // Aggregator Routes
@@ -151,7 +200,7 @@ class AppRouter {
         name: 'order-details',
         builder: (context, state) {
           final orderId = state.pathParameters['orderId']!;
-          return const Placeholder(); // TODO: Create screen
+          return OrderDetailsScreen(orderId: orderId);
         },
       ),
       GoRoute(

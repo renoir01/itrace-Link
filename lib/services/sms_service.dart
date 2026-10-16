@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -5,9 +6,14 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../core/constants/app_constants.dart';
 
 class SmsService {
-  final String _apiKey = dotenv.env['AFRICASTALKING_API_KEY'] ?? '';
-  final String _username = dotenv.env['AFRICASTALKING_USERNAME'] ?? '';
-  final String _senderId = dotenv.env['AFRICASTALKING_SENDER_ID'] ?? 'iTraceLink';
+  // Read lazily and safely: dotenv throws if it was never loaded, which used to
+  // crash every SMS call when no .env file was bundled.
+  static String _env(String key, [String fallback = '']) =>
+      dotenv.isInitialized ? (dotenv.env[key] ?? fallback) : fallback;
+
+  String get _apiKey => _env('AFRICASTALKING_API_KEY');
+  String get _username => _env('AFRICASTALKING_USERNAME');
+  String get _senderId => _env('AFRICASTALKING_SENDER_ID', 'iTraceLink');
   final String _baseUrl = 'https://api.africastalking.com/version1/messaging';
 
   // ==================== SEND SMS ====================
@@ -85,7 +91,8 @@ class SmsService {
 
   /// Generate OTP code (6 digits)
   String generateOTP() {
-    final random = DateTime.now().millisecondsSinceEpoch % 1000000;
+    // Cryptographically secure: the old timestamp-based code was predictable.
+    final random = Random.secure().nextInt(1000000);
     return random.toString().padLeft(6, '0');
   }
 

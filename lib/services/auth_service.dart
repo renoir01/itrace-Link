@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -50,25 +51,36 @@ class AuthService extends ChangeNotifier {
 
   // Phone Authentication - Send OTP
   Future<bool> sendOTP(String phoneNumber) async {
+    // verifyPhoneNumber reports failure through a callback, so a plain
+    // try/catch can never see it. Use a completer to return the real outcome.
+    final completer = Completer<bool>();
     try {
       await _auth.verifyPhoneNumber(
         phoneNumber: phoneNumber,
         verificationCompleted: (PhoneAuthCredential credential) async {
-          await _auth.signInWithCredential(credential);
+          try {
+            await _auth.signInWithCredential(credential);
+            if (!completer.isCompleted) completer.complete(true);
+          } catch (e) {
+            debugPrint('Auto sign-in failed: $e');
+            if (!completer.isCompleted) completer.complete(false);
+          }
         },
         verificationFailed: (FirebaseAuthException e) {
           debugPrint('Verification failed: ${e.message}');
-          throw e;
+          if (!completer.isCompleted) completer.complete(false);
         },
         codeSent: (String verificationId, int? resendToken) {
           _verificationId = verificationId;
+          if (!completer.isCompleted) completer.complete(true);
         },
         codeAutoRetrievalTimeout: (String verificationId) {
           _verificationId = verificationId;
         },
         timeout: const Duration(seconds: 60),
       );
-      return true;
+      return await completer.future
+          .timeout(const Duration(seconds: 65), onTimeout: () => false);
     } catch (e) {
       debugPrint('Error sending OTP: $e');
       return false;
