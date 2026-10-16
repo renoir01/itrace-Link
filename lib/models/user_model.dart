@@ -8,15 +8,19 @@ class UserModel {
   final String language;
   final bool isVerified;
   final DateTime createdAt;
+  final String? displayName;
+  final DateTime? lastLoginAt;
 
   UserModel({
     required this.id,
     required this.userType,
-    required this.email,
+    this.email = '',
     required this.phone,
-    required this.language,
-    required this.isVerified,
+    this.language = 'en',
+    this.isVerified = false,
     required this.createdAt,
+    this.displayName,
+    this.lastLoginAt,
   });
 
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
@@ -28,7 +32,9 @@ class UserModel {
       phone: data['phone'] ?? '',
       language: data['language'] ?? 'en',
       isVerified: data['isVerified'] ?? false,
-      createdAt: (data['createdAt'] as Timestamp).toDate(),
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      displayName: data['displayName'],
+      lastLoginAt: (data['lastLoginAt'] as Timestamp?)?.toDate(),
     );
   }
 
@@ -40,6 +46,8 @@ class UserModel {
       'language': language,
       'isVerified': isVerified,
       'createdAt': Timestamp.fromDate(createdAt),
+      if (displayName != null) 'displayName': displayName,
+      if (lastLoginAt != null) 'lastLoginAt': Timestamp.fromDate(lastLoginAt!),
     };
   }
 
@@ -50,6 +58,8 @@ class UserModel {
     String? language,
     bool? isVerified,
     DateTime? createdAt,
+    String? displayName,
+    DateTime? lastLoginAt,
   }) {
     return UserModel(
       id: id,
@@ -59,6 +69,8 @@ class UserModel {
       language: language ?? this.language,
       isVerified: isVerified ?? this.isVerified,
       createdAt: createdAt ?? this.createdAt,
+      displayName: displayName ?? this.displayName,
+      lastLoginAt: lastLoginAt ?? this.lastLoginAt,
     );
   }
 }
@@ -67,12 +79,14 @@ class AddressModel {
   final String district;
   final String sector;
   final String cell;
+  final String? address; // street / facility address (free text)
   final GeoPoint? gps;
 
   AddressModel({
     required this.district,
-    required this.sector,
-    required this.cell,
+    this.sector = '',
+    this.cell = '',
+    this.address,
     this.gps,
   });
 
@@ -81,6 +95,7 @@ class AddressModel {
       district: map['district'] ?? '',
       sector: map['sector'] ?? '',
       cell: map['cell'] ?? '',
+      address: map['address'],
       gps: map['gps'] as GeoPoint?,
     );
   }
@@ -90,7 +105,17 @@ class AddressModel {
       'district': district,
       'sector': sector,
       'cell': cell,
+      if (address != null && address!.isNotEmpty) 'address': address,
       if (gps != null) 'gps': gps,
     };
+  }
+
+  /// Human readable one-line description, skipping empty parts.
+  String get displayText {
+    final parts = [address, cell, sector, district]
+        .whereType<String>()
+        .where((p) => p.trim().isNotEmpty)
+        .toList();
+    return parts.join(', ');
   }
 }

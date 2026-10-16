@@ -16,6 +16,9 @@ class OrderModel {
   final String paymentStatus;
   final String? buyerName;
   final String? sellerName;
+  final String? beanVariety;
+  final String? notes;
+  final DateTime? updatedAt;
 
   OrderModel({
     required this.id,
@@ -32,6 +35,9 @@ class OrderModel {
     required this.paymentStatus,
     this.buyerName,
     this.sellerName,
+    this.beanVariety,
+    this.notes,
+    this.updatedAt,
   });
 
   factory OrderModel.fromFirestore(DocumentSnapshot doc) {
@@ -52,6 +58,9 @@ class OrderModel {
       paymentStatus: data['paymentStatus'] ?? 'pending',
       buyerName: data['buyerName'],
       sellerName: data['sellerName'],
+      beanVariety: data['beanVariety'],
+      notes: data['notes'],
+      updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
     );
   }
 
@@ -70,6 +79,9 @@ class OrderModel {
       'paymentStatus': paymentStatus,
       if (buyerName != null) 'buyerName': buyerName,
       if (sellerName != null) 'sellerName': sellerName,
+      if (beanVariety != null) 'beanVariety': beanVariety,
+      if (notes != null) 'notes': notes,
+      'updatedAt': Timestamp.fromDate(updatedAt ?? DateTime.now()),
     };
   }
 
@@ -87,6 +99,9 @@ class OrderModel {
     String? paymentStatus,
     String? buyerName,
     String? sellerName,
+    String? beanVariety,
+    String? notes,
+    DateTime? updatedAt,
   }) {
     return OrderModel(
       id: id,
@@ -103,8 +118,17 @@ class OrderModel {
       paymentStatus: paymentStatus ?? this.paymentStatus,
       buyerName: buyerName ?? this.buyerName,
       sellerName: sellerName ?? this.sellerName,
+      beanVariety: beanVariety ?? this.beanVariety,
+      notes: notes ?? this.notes,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
+
+  // Convenience aliases used by the UI layer.
+  DateTime get createdAt => requestDate;
+  double get totalPrice => totalAmount;
+  DateTime get deliveryDate => expectedDeliveryDate;
+  String get deliveryAddress => deliveryLocation.displayText;
 
   bool get isPending => status == 'pending';
   bool get isAccepted => status == 'accepted';

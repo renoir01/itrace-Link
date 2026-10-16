@@ -15,6 +15,13 @@ class InstitutionModel {
   final String paymentTerms;
   final String? profileImageUrl;
   final bool isVerified;
+  final int numberOfBeneficiaries;
+  final double? budget;
+  final List<String> documents;
+  final int totalOrders;
+  final int completedOrders;
+  final double totalSpent;
+  final DateTime? updatedAt;
   final DateTime createdAt;
 
   InstitutionModel({
@@ -31,6 +38,13 @@ class InstitutionModel {
     required this.paymentTerms,
     this.profileImageUrl,
     this.isVerified = false,
+    this.numberOfBeneficiaries = 0,
+    this.budget,
+    this.documents = const [],
+    this.totalOrders = 0,
+    this.completedOrders = 0,
+    this.totalSpent = 0.0,
+    this.updatedAt,
     required this.createdAt,
   });
 
@@ -50,6 +64,13 @@ class InstitutionModel {
       paymentTerms: data['paymentTerms'] ?? '',
       profileImageUrl: data['profileImageUrl'],
       isVerified: data['isVerified'] ?? false,
+      numberOfBeneficiaries: data['numberOfBeneficiaries'] ?? 0,
+      budget: (data['budget'] as num?)?.toDouble(),
+      documents: List<String>.from(data['documents'] ?? []),
+      totalOrders: data['totalOrders'] ?? 0,
+      completedOrders: data['completedOrders'] ?? 0,
+      totalSpent: (data['totalSpent'] ?? 0).toDouble(),
+      updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
       createdAt: (data['createdAt'] as Timestamp).toDate(),
     );
   }
@@ -68,6 +89,13 @@ class InstitutionModel {
       'paymentTerms': paymentTerms,
       if (profileImageUrl != null) 'profileImageUrl': profileImageUrl,
       'isVerified': isVerified,
+      'numberOfBeneficiaries': numberOfBeneficiaries,
+      if (budget != null) 'budget': budget,
+      'documents': documents,
+      'totalOrders': totalOrders,
+      'completedOrders': completedOrders,
+      'totalSpent': totalSpent,
+      'updatedAt': Timestamp.fromDate(updatedAt ?? DateTime.now()),
       'createdAt': Timestamp.fromDate(createdAt),
     };
   }
@@ -87,6 +115,13 @@ class InstitutionModel {
     String? paymentTerms,
     String? profileImageUrl,
     bool? isVerified,
+    int? numberOfBeneficiaries,
+    double? budget,
+    List<String>? documents,
+    int? totalOrders,
+    int? completedOrders,
+    double? totalSpent,
+    DateTime? updatedAt,
   }) {
     return InstitutionModel(
       id: id,
@@ -102,6 +137,13 @@ class InstitutionModel {
       paymentTerms: paymentTerms ?? this.paymentTerms,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
       isVerified: isVerified ?? this.isVerified,
+      numberOfBeneficiaries: numberOfBeneficiaries ?? this.numberOfBeneficiaries,
+      budget: budget ?? this.budget,
+      documents: documents ?? this.documents,
+      totalOrders: totalOrders ?? this.totalOrders,
+      completedOrders: completedOrders ?? this.completedOrders,
+      totalSpent: totalSpent ?? this.totalSpent,
+      updatedAt: updatedAt ?? this.updatedAt,
       createdAt: createdAt,
     );
   }

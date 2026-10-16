@@ -13,6 +13,13 @@ class AgroDealerModel {
   final List<SeedInventory> inventory;
   final String? profileImageUrl;
   final bool isVerified;
+  final String? tinNumber;
+  final String contactPerson;
+  final List<String> authorizedSeedProducers;
+  final List<String> documents;
+  final double rating;
+  final double totalSales;
+  final DateTime? updatedAt;
   final DateTime createdAt;
 
   AgroDealerModel({
@@ -23,10 +30,17 @@ class AgroDealerModel {
     required this.location,
     required this.phone,
     required this.email,
-    required this.seedProducerId,
+    this.seedProducerId = '',
     this.inventory = const [],
     this.profileImageUrl,
     this.isVerified = false,
+    this.tinNumber,
+    this.contactPerson = '',
+    this.authorizedSeedProducers = const [],
+    this.documents = const [],
+    this.rating = 0.0,
+    this.totalSales = 0.0,
+    this.updatedAt,
     required this.createdAt,
   });
 
@@ -47,6 +61,13 @@ class AgroDealerModel {
           [],
       profileImageUrl: data['profileImageUrl'],
       isVerified: data['isVerified'] ?? false,
+      tinNumber: data['tinNumber'],
+      contactPerson: data['contactPerson'] ?? '',
+      authorizedSeedProducers: List<String>.from(data['authorizedSeedProducers'] ?? []),
+      documents: List<String>.from(data['documents'] ?? []),
+      rating: (data['rating'] ?? 0).toDouble(),
+      totalSales: (data['totalSales'] ?? 0).toDouble(),
+      updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
       createdAt: (data['createdAt'] as Timestamp).toDate(),
     );
   }
@@ -63,6 +84,13 @@ class AgroDealerModel {
       'inventory': inventory.map((item) => item.toMap()).toList(),
       if (profileImageUrl != null) 'profileImageUrl': profileImageUrl,
       'isVerified': isVerified,
+      if (tinNumber != null) 'tinNumber': tinNumber,
+      'contactPerson': contactPerson,
+      'authorizedSeedProducers': authorizedSeedProducers,
+      'documents': documents,
+      'rating': rating,
+      'totalSales': totalSales,
+      'updatedAt': Timestamp.fromDate(updatedAt ?? DateTime.now()),
       'createdAt': Timestamp.fromDate(createdAt),
     };
   }
@@ -77,6 +105,13 @@ class AgroDealerModel {
     List<SeedInventory>? inventory,
     String? profileImageUrl,
     bool? isVerified,
+    String? tinNumber,
+    String? contactPerson,
+    List<String>? authorizedSeedProducers,
+    List<String>? documents,
+    double? rating,
+    double? totalSales,
+    DateTime? updatedAt,
   }) {
     return AgroDealerModel(
       id: id,
@@ -90,6 +125,13 @@ class AgroDealerModel {
       inventory: inventory ?? this.inventory,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
       isVerified: isVerified ?? this.isVerified,
+      tinNumber: tinNumber ?? this.tinNumber,
+      contactPerson: contactPerson ?? this.contactPerson,
+      authorizedSeedProducers: authorizedSeedProducers ?? this.authorizedSeedProducers,
+      documents: documents ?? this.documents,
+      rating: rating ?? this.rating,
+      totalSales: totalSales ?? this.totalSales,
+      updatedAt: updatedAt ?? this.updatedAt,
       createdAt: createdAt,
     );
   }

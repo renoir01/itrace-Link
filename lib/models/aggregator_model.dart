@@ -16,6 +16,12 @@ class AggregatorModel {
   final int totalOrders;
   final String? profileImageUrl;
   final bool isVerified;
+  final String? tinNumber;
+  final String contactPerson;
+  final double currentInventory;
+  final List<String> documents;
+  final int completedOrders;
+  final DateTime? updatedAt;
   final DateTime createdAt;
 
   AggregatorModel({
@@ -33,6 +39,12 @@ class AggregatorModel {
     this.totalOrders = 0,
     this.profileImageUrl,
     this.isVerified = false,
+    this.tinNumber,
+    this.contactPerson = '',
+    this.currentInventory = 0.0,
+    this.documents = const [],
+    this.completedOrders = 0,
+    this.updatedAt,
     required this.createdAt,
   });
 
@@ -53,6 +65,12 @@ class AggregatorModel {
       totalOrders: data['totalOrders'] ?? 0,
       profileImageUrl: data['profileImageUrl'],
       isVerified: data['isVerified'] ?? false,
+      tinNumber: data['tinNumber'],
+      contactPerson: data['contactPerson'] ?? '',
+      currentInventory: (data['currentInventory'] ?? 0).toDouble(),
+      documents: List<String>.from(data['documents'] ?? []),
+      completedOrders: data['completedOrders'] ?? 0,
+      updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
       createdAt: (data['createdAt'] as Timestamp).toDate(),
     );
   }
@@ -72,6 +90,12 @@ class AggregatorModel {
       'totalOrders': totalOrders,
       if (profileImageUrl != null) 'profileImageUrl': profileImageUrl,
       'isVerified': isVerified,
+      if (tinNumber != null) 'tinNumber': tinNumber,
+      'contactPerson': contactPerson,
+      'currentInventory': currentInventory,
+      'documents': documents,
+      'completedOrders': completedOrders,
+      'updatedAt': Timestamp.fromDate(updatedAt ?? DateTime.now()),
       'createdAt': Timestamp.fromDate(createdAt),
     };
   }
@@ -89,6 +113,12 @@ class AggregatorModel {
     int? totalOrders,
     String? profileImageUrl,
     bool? isVerified,
+    String? tinNumber,
+    String? contactPerson,
+    double? currentInventory,
+    List<String>? documents,
+    int? completedOrders,
+    DateTime? updatedAt,
   }) {
     return AggregatorModel(
       id: id,
@@ -105,6 +135,12 @@ class AggregatorModel {
       totalOrders: totalOrders ?? this.totalOrders,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
       isVerified: isVerified ?? this.isVerified,
+      tinNumber: tinNumber ?? this.tinNumber,
+      contactPerson: contactPerson ?? this.contactPerson,
+      currentInventory: currentInventory ?? this.currentInventory,
+      documents: documents ?? this.documents,
+      completedOrders: completedOrders ?? this.completedOrders,
+      updatedAt: updatedAt ?? this.updatedAt,
       createdAt: createdAt,
     );
   }

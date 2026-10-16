@@ -16,6 +16,11 @@ class SeedProducerModel {
   final List<String> authorizedDealerIds; // References to agro-dealers
   final String? profileImageUrl;
   final bool isVerified;
+  final String? tinNumber;
+  final List<String> documents;
+  final double totalProduction;
+  final int totalDealers;
+  final DateTime? updatedAt;
   final DateTime createdAt;
 
   SeedProducerModel({
@@ -33,6 +38,11 @@ class SeedProducerModel {
     this.authorizedDealerIds = const [],
     this.profileImageUrl,
     this.isVerified = false,
+    this.tinNumber,
+    this.documents = const [],
+    this.totalProduction = 0.0,
+    this.totalDealers = 0,
+    this.updatedAt,
     required this.createdAt,
   });
 
@@ -53,6 +63,11 @@ class SeedProducerModel {
       authorizedDealerIds: List<String>.from(data['authorizedDealerIds'] ?? []),
       profileImageUrl: data['profileImageUrl'],
       isVerified: data['isVerified'] ?? false,
+      tinNumber: data['tinNumber'],
+      documents: List<String>.from(data['documents'] ?? []),
+      totalProduction: (data['totalProduction'] ?? 0).toDouble(),
+      totalDealers: data['totalDealers'] ?? 0,
+      updatedAt: (data['updatedAt'] as Timestamp?)?.toDate(),
       createdAt: (data['createdAt'] as Timestamp).toDate(),
     );
   }
@@ -72,6 +87,11 @@ class SeedProducerModel {
       'authorizedDealerIds': authorizedDealerIds,
       if (profileImageUrl != null) 'profileImageUrl': profileImageUrl,
       'isVerified': isVerified,
+      if (tinNumber != null) 'tinNumber': tinNumber,
+      'documents': documents,
+      'totalProduction': totalProduction,
+      'totalDealers': totalDealers,
+      'updatedAt': Timestamp.fromDate(updatedAt ?? DateTime.now()),
       'createdAt': Timestamp.fromDate(createdAt),
     };
   }
@@ -89,6 +109,11 @@ class SeedProducerModel {
     List<String>? authorizedDealerIds,
     String? profileImageUrl,
     bool? isVerified,
+    String? tinNumber,
+    List<String>? documents,
+    double? totalProduction,
+    int? totalDealers,
+    DateTime? updatedAt,
   }) {
     return SeedProducerModel(
       id: id,
@@ -105,6 +130,11 @@ class SeedProducerModel {
       authorizedDealerIds: authorizedDealerIds ?? this.authorizedDealerIds,
       profileImageUrl: profileImageUrl ?? this.profileImageUrl,
       isVerified: isVerified ?? this.isVerified,
+      tinNumber: tinNumber ?? this.tinNumber,
+      documents: documents ?? this.documents,
+      totalProduction: totalProduction ?? this.totalProduction,
+      totalDealers: totalDealers ?? this.totalDealers,
+      updatedAt: updatedAt ?? this.updatedAt,
       createdAt: createdAt,
     );
   }
